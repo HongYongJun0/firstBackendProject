@@ -84,6 +84,7 @@ router.post("/file", uploadFile.single("imageFile"), (req, res) => {        //�
         "isFileSend": false,
         "fileName": ""
     }
+    console.log(req.body)
     if(req.file == undefined) {
         res.send(result)
     }
@@ -94,12 +95,17 @@ router.post("/file", uploadFile.single("imageFile"), (req, res) => {        //�
     }
 })
 
-router.post("/", async (req, res) => {       //게시글 작성
+router.post("/", uploadFile.single("imageFile"), async (req, res) => {       //게시글 작성
     const userId = req.body.writer
     const title = req.body.title
     const content = req.body.content
-    const fileName = req.body.fileName
-
+    let fileName = ""
+    if(req.file == undefined) {
+        fileName = ""
+    }
+    else {
+        fileName = req.file.key
+    }
     const result = {
         "success": false,
         "message": ""
