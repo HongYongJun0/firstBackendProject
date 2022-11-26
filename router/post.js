@@ -79,22 +79,6 @@ router.get("/", async (req, res) => {         //특정 게시글 하나 불러�
     }
 })
 
-router.post("/file", uploadFile.single("imageFile"), (req, res) => {        //파일 업로드
-    const result = {
-        "isFileSend": false,
-        "fileName": ""
-    }
-    console.log(req.body)
-    if(req.file == undefined) {
-        res.send(result)
-    }
-    else {
-        result.isFileSend = true
-        result.fileName = req.file.key
-        res.send(result)
-    }
-})
-
 router.post("/", uploadFile.single("imageFile"), async (req, res) => {       //게시글 작성
     const userId = req.body.writer
     const title = req.body.title

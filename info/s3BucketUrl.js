@@ -1,3 +1,3 @@
-const bucketURL = "https://stageus-yongjun.s3.ap-northeast-2.amazonaws.com/"
+const bucketURL = process.env.s3BucketUrl
 
 module.exports = bucketURL

@@ -90,7 +90,6 @@
         console.log(document.getElementById("imageUpload").files[0])
         const formData = new FormData()
         formData.append("imageFile", document.getElementById("imageUpload").files[0])
-        formData.append("test", userId)
 
         if(title == "") {
             alert("제목을 입력해주세요")
@@ -102,19 +101,6 @@
             formData.append("writer", userId)
             formData.append("title", title)
             formData.append("content", content)
-            // const uploadResult = await fetch("/post/file", {
-            //     "method": "POST",
-            //     "body": formData
-            // })
-            // const uploadResponse = await uploadResult.json()
-            // let fileName
-            // console.log(uploadResponse.fileName)
-            // if(uploadResponse.isFileSend == true) {
-            //     fileName = uploadResponse.fileName
-            // }
-            // else {
-            //     fileName = ""
-            // }
             const writeResult = await fetch("/post", {
                 "method": "POST",
                 "body": formData

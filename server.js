@@ -3,6 +3,7 @@ const session = require("express-session")
 const app = express()
 const port = 3000
 app.use(express.json())
+require("dotenv").config()
 
 const {Client} = require("pg")
 

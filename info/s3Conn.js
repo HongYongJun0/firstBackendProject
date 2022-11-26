@@ -1,7 +1,7 @@
 const s3ConnectInfo = {
-    "region": "ap-northeast-2",
-    "accessKeyId": "AKIA25PW4F4OVATKXUOW",
-    "secretAccessKey": "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"
+    "region": process.env.s3Region,
+    "accessKeyId": process.env.s3AccessKeyId,
+    "secretAccessKey": process.env.s3SecretAccessKey
 }
 
 module.exports = s3ConnectInfo

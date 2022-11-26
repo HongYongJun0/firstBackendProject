@@ -1,3 +1,3 @@
-const mongoConn = "mongodb://localhost:27017"
+const mongoConn = process.env.mongoConn
 
 module.exports = mongoConn

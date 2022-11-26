@@ -1,9 +1,9 @@
 const connectInfo = {
-    user: "ubuntu",
-    password: "0908",
-    host: "localhost",
-    database: "yjdb",
-    port:5432
+    user: process.env.pgUser,
+    password: process.env.pgPassword,
+    host: process.env.pgHost,
+    database: process.env.pgDb,
+    port: process.env.pgPort
 }
 
 module.exports = connectInfo
