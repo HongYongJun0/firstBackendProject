@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>회원가입 페이지</h1>
+    <div>
+        이름
+        <input id="newName" type="text">
+    </div>
+    <div>
+        아이디
+        <input id="newId" type="text" onchange="idChange()">
+        <input type="button" value="아이디 중복 확인" onclick="checkIdEvent()">
+    </div>
+    <div>
+        비밀번호
+        <input id="newPassword" type="password">
+        비밀번호 확인
+        <input id="checkPassword" type="password">
+    </div>
+    <div>
+        <input type="button" value="회원가입" onclick="signupEvent()">
+    </div>
+</body>
+
+<script>
+    let isIdChecked = false
+    const idChange = () => {
+        isIdChecked = false
+    }
+
+    const checkIdEvent = async () => {
+        const newId = document.getElementById("newId").value
+
+        const result = await fetch("/account/checkId", {
+            "method": "POST",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": JSON.stringify({
+                "checkNewId": newId
+            })
+        })
+        const response = await result.json()
+        if(response.isIdOverlapped == true) {
+            if(response.message == "") {
+                alert("아이디 중복")    
+            }
+            else {
+                alert(response.message)
+            }
+        }
+        else if(newId == "") {
+            alert("아이디를 입력해 주세요")
+        }
+        else if(newId != "" && response.isIdOverlapped == false) {
+            alert("사용 가능한 아이디입니다")  
+            isIdChecked = true
+        }
+        
+    }
+
+    const signupEvent = async () => {
+        const newName = document.getElementById("newName").value
+        const newId = document.getElementById("newId").value
+        const newPassword = document.getElementById("newPassword").value
+        const checkPassword = document.getElementById("checkPassword").value
+
+        if(newName == "") {
+            alert("이름을 입력해주세요")
+        }
+        else if(isIdChecked == false) {
+            alert("아이디 중복확인을 해주세요")
+        }
+        else if(newPassword != checkPassword) {
+            alert("비밀번호가 일치하지 않습니다")
+        }
+        else if(newPassword == "") {
+            alert("비밀번호를 입력해 주세요")
+        }
+        else {
+            const result = await fetch("/account", {
+                "method": "POST",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "newName": newName,
+                    "newId": newId,
+                    "newPassword": newPassword
+                })
+            })
+            const response = await result.json()
+            if(response.signupSuccess == true) {
+                alert("회원가입 성공")
+                location.href = "/loginPage"
+            }
+            else {
+                alert(response.message)
+            }
+        }
+    }
+</script>
+</html>

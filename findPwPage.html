@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>비밀번호 찾기</h1>
+    <div>
+        이름입력
+        <input type="text">
+    </div>
+    <div>
+        아이디입력
+        <input type="text" id="id">
+    </div>
+    <div>
+        <input type="button" value="비밀번호찾기" onclick="findPwEvent()">
+    </div>
+    <input type="button" value="로그인 페이지로 돌아가기" onclick="loginPageEvent()">
+
+</body>
+
+<script>
+    const findPwEvent = async () => {
+        const id = document.getElementById("id").value
+        if(id == "") {
+            alert("아이디를 입력해 주세요")
+        }
+        else {
+            const result = await fetch("/account/findPw", {
+                "method": "POST",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "id": id
+                })
+            })
+            const response = await result.json()
+            if(response.length == 1) {
+                console.log(response)
+                alert(`이 아이디의 비밀번호는 ${response[0].userpassword} 입니다.`)
+            }
+            else {
+                alert("해당 아이디가 존재하지 않습니다.")
+            }
+        }
+    }
+
+    const loginPageEvent = () => {
+        location.href = "/loginPage"
+    }
+</script>
+</html>

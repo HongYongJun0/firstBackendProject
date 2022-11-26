@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>로그인 페이지</h1>
+    <div>
+        아이디
+        <input id="id_value"type="text">
+    </div>
+    <div>
+        비밀번호
+        <input id="pw_value"type="text">
+    </div>
+    <div>
+        <input type="button" value="회원가입" onclick="signupEvent()">
+        <input type="button" value="아이디 찾기" onclick="findIdEvent()">
+        <input type="button" value="비밀번호 찾기" onclick="findPwEvent()">
+    </div>
+    <div>
+        <input type="button" value="로그인" onclick="loginEvent()">
+    </div>
+</body>
+
+<script>
+    const signupEvent = () => {
+        location.href = "/signupPage"
+    }
+    
+    const findIdEvent = () => {
+        location.href = "/findIdPage"
+
+    }
+
+    const findPwEvent = () => {
+        location.href = "/findPwPage"
+    }
+
+    const loginEvent = async () => {
+        const idValue = document.getElementById("id_value").value
+        const pwValue = document.getElementById("pw_value").value
+
+        const result = await fetch("/account/login", {
+            "method": "POST",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": JSON.stringify({
+                "id": idValue,
+                "pw": pwValue
+            })
+        })
+        const response = await result.json()
+        // const logResult = await fetch("/sendLog", {
+        //     "method": "POST",
+        //     "headers": {
+        //         "Content-Type": "application/json"
+        //     },
+        //     "body": JSON.stringify({
+        //         "id": "none",
+        //         "apiName": "/account/login",
+        //         "methods": "post",
+        //         "req": {
+        //             "id": idValue,
+        //             "pw": pwValue
+        //         },
+        //         "res": response
+        //     })
+        // })
+        // const logResponse = await logResult.json()
+        // if(logResponse.success == false) {
+        //     alert(logResponse.message)
+        // }
+        if(response.success == true) {
+            alert("로그인성공")
+            location.href = "/mainPage"
+        }
+        else {
+            alert("아이디 또는 비밀번호가 잘못되었습니다.")
+        }
+    }
+</script>
+</html>

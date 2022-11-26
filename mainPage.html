@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1 id="mainText"></h1>
+
+    <table border="1" id="allPost">
+        <th>유저아이디</th>
+        <th>제목</th>
+        <th>내용</th>
+        <th>날짜</th>
+    </table>
+
+    <div>
+        게시글제목
+        <input type="text" id="postTitle">
+    </div>
+    <div>
+        게시글내용
+        <input type="text" id="postContent">
+    </div>
+    <div>
+        이미지 첨부
+        <input type="file" id="imageUpload" accept="image/*">
+    </div>
+    <input type="button" value="게시글 쓰기" onclick="writePostEvent()">
+    <div>
+        <input type="button" value="로그아웃" onclick="logoutEvent()">
+    </div>
+    <div>
+        <input type="button" value="로그" onclick="logPageEvent()">
+    </div>
+</body>
+
+<script>
+    let userId = ""
+    let isManager
+    window.onload = async () => {
+        let mainText = document.getElementById("mainText")
+        let allPost = document.getElementById("allPost")
+        const result = await fetch("/session")
+        const response = await result.json()
+        if(response.id == undefined) {
+            alert(response.message)
+            location.href = "/loginPage"
+        }
+        userId = response.id
+        isManager = response.isManager
+        mainText.innerText = `${response.id}님, 환영합니다.`
+        const post = await fetch("/post/all")
+        const response2 = await post.json()
+
+        if(response2.message != undefined) {
+            console.log(response2.message)
+        }
+        for(let i=0; i<response2.length; i++) {
+            let newTr = document.createElement("tr")
+            newTr.setAttribute("id", response2[i].postid)
+            newTr.onclick = () => {
+                location.href = "/viewPostPage?id=" + `${response2[i].postid}`
+            }
+
+            let newTd1 = document.createElement("td")
+            let newTd2 = document.createElement("td")
+            let newTd3 = document.createElement("td")
+            let newTd4 = document.createElement("td")
+            
+            newTd1.innerHTML = response2[i].userid
+            newTd2.innerHTML = response2[i].title
+            newTd3.innerHTML = response2[i].contents
+            newTd4.innerHTML = response2[i].date
+            newTr.appendChild(newTd1)
+            newTr.appendChild(newTd2)
+            newTr.appendChild(newTd3)
+            newTr.appendChild(newTd4)
+            allPost.appendChild(newTr)
+        }
+
+    }
+
+    const writePostEvent = async () => {
+        let title = document.getElementById("postTitle").value
+        let content = document.getElementById("postContent").value
+        
+        console.log(document.getElementById("imageUpload").files[0])
+        const formData = new FormData()
+        formData.append("imageFile", document.getElementById("imageUpload").files[0])
+
+        if(title == "") {
+            alert("제목을 입력해주세요")
+        }
+        else if(content == "") {
+            alert("내용을 입력해주세요")
+        }
+        else {
+            const uploadResult = await fetch("/post/file", {
+                "method": "POST",
+                "body": formData
+            })
+            const uploadResponse = await uploadResult.json()
+            let fileName
+            console.log(uploadResponse.fileName)
+            if(uploadResponse.isFileSend == true) {
+                fileName = uploadResponse.fileName
+            }
+            else {
+                fileName = ""
+            }
+            const writeResult = await fetch("/post", {
+                "method": "POST",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "writer": userId,
+                    "title": title,
+                    "content": content,
+                    "fileName": fileName
+                })
+            })
+            const writeResponse = await writeResult.json()
+            if(writeResponse.success == false) {
+                alert(writeResponse.message)
+            }
+            else {
+                alert("작성 완료") 
+            }
+            window.location.reload()
+        }
+    }
+
+    const logoutEvent = async () => {
+        const result = await fetch("/session", {
+            "method": "DELETE",
+            "headers": {
+                "Content-Type": "application/json"
+            }
+        })
+        const response = await result.json()
+        alert(response.message)
+        location.href = "/loginPage"
+    }
+    const logPageEvent = () => {
+        if(isManager == true) {
+            location.href = "/logPage"
+        }
+        else {
+            alert("권한이 없습니다.")
+        }
+
+    }
+</script>
+</html>

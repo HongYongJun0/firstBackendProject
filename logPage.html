@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    로그 페이지
+    <select id="orderby">
+        <option value= 1>오름차순</option>
+        <option value= -1>내림차순</option>
+    </select>
+    <select id="option">
+        <option value='all'>전체</option>
+        <option value='userId'>유저아이디로 찾기</option>
+        <option value='apiName'>api명으로 찾기</option>
+    </select>
+    <input type="text" id="keyword">
+    <input type="button" value="검색" onclick="find()">
+    <div>
+        시작시간
+        <input type="date" id="startDate">
+        <input type="time" id="startTime">
+    </div>
+    <div>
+        끝시간
+        <input type="date" id="endDate">
+        <input type="time" id="endTime">
+    </div>
+    
+
+    <div id="allLog">
+    </div>
+
+</body>
+<script>
+    window.onload = async () => {
+        const result = await fetch("/session")
+        const response = await result.json()
+        if(response.id == undefined || response.isManager == false) {
+            alert("권한이 없습니다")
+            location.href = "loginPage/"
+        }
+    }
+
+    const sorting = (response) => {
+        let allLog = document.getElementById("allLog")
+        allLog.innerHTML = ""
+        let newTable = document.createElement("table")
+        newTable.setAttribute("border", 1)
+        newTable.setAttribute("id", "table")
+        let newTh1 = document.createElement("th")
+        newTh1.innerHTML = "userId"
+        let newTh2 = document.createElement("th")
+        newTh2.innerHTML = "date"
+        let newTh3 = document.createElement("th")
+        newTh3.innerHTML = "apiName"
+        let newTh4 = document.createElement("th")
+        newTh4.innerHTML = "methods"
+        let newTh5 = document.createElement("th")
+        newTh5.innerHTML = "reqData"
+        let newTh6 = document.createElement("th")
+        newTh6.innerHTML = "resData"
+        let newTh7 = document.createElement("th")
+        newTh7.innerHTML = "clientIp"
+        newTable.appendChild(newTh1)
+        newTable.appendChild(newTh2)
+        newTable.appendChild(newTh3)
+        newTable.appendChild(newTh4)
+        newTable.appendChild(newTh5)
+        newTable.appendChild(newTh6)
+        newTable.appendChild(newTh7)
+        allLog.appendChild(newTable)
+
+        let table = document.getElementById("table")
+        for(let i=0; i<response.length; i++) {
+            let newTr = document.createElement("tr")
+
+            let newTd1 = document.createElement("td")
+            let newTd2 = document.createElement("td")
+            let newTd3 = document.createElement("td")
+            let newTd4 = document.createElement("td")
+            let newTd5 = document.createElement("td")
+            let newTd6 = document.createElement("td")
+            let newTd7 = document.createElement("td")
+            
+            if(response[i].userId == undefined) {
+                newTd1.innerHTML = "없음"
+            }
+            else {
+                newTd1.innerHTML = response[i].userId
+            }
+            newTd2.innerHTML = response[i].date
+            newTd3.innerHTML = response[i].apiName
+            newTd4.innerHTML = response[i].methods
+            if(response[i].reqData == undefined || response[i].reqData == "none") {
+                newTd5.innerHTML = "없음"
+            }
+            else {
+                newTd5.innerHTML = JSON.stringify(response[i].reqData)
+            }
+            const res = {"res": response[i].resData}
+            newTd6.innerHTML = JSON.stringify(res.res)
+            newTd7.innerHTML = response[i].clientIp
+            newTr.appendChild(newTd1)
+            newTr.appendChild(newTd2)
+            newTr.appendChild(newTd3)
+            newTr.appendChild(newTd4)
+            newTr.appendChild(newTd5)
+            newTr.appendChild(newTd6)
+            newTr.appendChild(newTd7)
+            table.appendChild(newTr)
+        }
+    }
+
+
+
+    const find = async () => {
+        const startDate = document.getElementById("startDate").value
+        const startTime = document.getElementById("startTime").value
+        const endDate = document.getElementById("endDate").value
+        const endTime = document.getElementById("endTime").value
+        const ISOstart = startDate + "T" + startTime + ":00.000Z"
+        const ISOend = endDate + "T" + endTime + ":00.000Z"
+        const orderby = document.getElementById("orderby").value
+        const option = document.getElementById("option").value
+        const keyword = document.getElementById("keyword").value
+
+        if(ISOstart.length != 24 || ISOend.length != 24) {
+            alert("날짜를 지정해주세요")
+        }
+        else {
+            const result = await fetch("/sendLog/sort", {
+                "method": "POST",
+                "headers": {
+                    "Content-Type": "application/json"
+                },
+                "body": JSON.stringify({
+                    "sort": option,
+                    "keyword": keyword,
+                    "orderby": orderby,
+                    "startTime": ISOstart,
+                    "endTime": ISOend
+                })
+            })
+            const response = await result.json()
+            sorting(response)
+        }
+    }
+</script>
+</html>

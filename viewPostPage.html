@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>게시글 보기</h1>
+    <div id="title"></div>
+    <div>
+        <input id="editTitle" type="text" style="display: none;">
+    </div>
+    <div id="writer"></div>
+    <div>
+        <img src="" id="fileImage" style="width: 400px; height: auto">
+    </div>
+    <div id="date"></div>
+    <div id="content"></div>
+
+    <div>
+        <input id="editContent" type="text" style="display: none;">
+    </div>
+    <input id="submitButton" type="button" value="수정하기" onclick="submitPostEvent()" style="display: none;">
+
+    <input id = "editFormButton" type="button" value="게시글 수정" onclick="editPostEvent()">
+    <input type="button" value="게시글 삭제" onclick="deletePostEvent()">
+    <div>
+        <input type="button" value="메인 페이지로 돌아가기" onclick="mainPageEvent()">
+    </div>
+</body>
+
+<script>
+    let userId = ""
+    let writerId = ""
+    let postId
+    let fileName = ""
+    window.onload = async () => {
+        const result = await fetch("/session")
+        const response = await result.json()
+        if(response.id == undefined) {
+            alert(response.message)
+            location.href = "/loginPage"
+        }
+        userId = response.id
+        let title = document.getElementById("title")
+        let writer = document.getElementById("writer")
+        let date = document.getElementById("date")
+        let content = document.getElementById("content")
+
+        const result2 = await fetch("/post")
+        const response2 = await result2.json()
+        console.log(response2)
+        if(response2.message != undefined) {
+            alert(response2.message)
+            location.href = "/mainPage"
+        }
+        else {
+            postId = response2[0].postid
+            title.innerHTML = response2[0].title
+            writer.innerHTML = response2[0].userid
+            date.innerHTML = response2[0].date
+            content.innerHTML = response2[0].contents
+            writerId = response2[0].userid
+            if(response2[0].filename.length != 0) {
+                document.getElementById("fileImage").src = response2[0].imageUrl
+                fileName = response2[0].filename
+            }
+            else {
+                document.getElementById("fileImage").style.display = "none"
+            }
+        }
+
+        console.log(response2.length)
+        console.log(response2[0].filename.length)
+
+    }
+
+    const mainPageEvent = () => {
+        location.href = "/mainPage"
+    }
+
+    const deletePostEvent = async () => {
+        if(userId == writerId) {
+            if(confirm("이 게시글을 삭제하시겠습니까?") == true) {
+                const result = await fetch("/post", {
+                    "method": "DELETE",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": JSON.stringify({
+                        "postId": postId,
+                        "fileName": fileName
+                    })
+                })
+                const response = await result.json()
+                if(response.success == true) {
+                    alert("게시글 삭제 완료")
+                    location.href = "/mainPage"
+                }
+                else {
+                    console.log(response.message)
+                    alert("삭제 실패")
+                }
+            }
+        }
+        else {
+            alert("권한이 없습니다.")
+        }
+    }
+
+    const editPostEvent = () => {
+        if(userId == writerId) {
+            document.getElementById("editFormButton").style.display = "none"
+            let title = document.getElementById("title")
+            let content = document.getElementById("content")
+            let editTitle = document.getElementById("editTitle")
+            let editContent = document.getElementById("editContent")
+            title.style.display = "none"
+            editTitle.value = title.innerHTML
+            content.style.display = "none"
+            editContent.value = content.innerHTML
+            editTitle.style.display = "block"
+            editContent.style.display = "block"
+            document.getElementById("submitButton").style.display = "inline"
+        }
+        else {
+            alert("권한이 없습니다.")
+        }
+    }
+
+    const submitPostEvent = async () => {
+        const newTitle = document.getElementById("editTitle").value
+        const newContent = document.getElementById("editContent").value
+
+        const result = await fetch("/post", {
+            "method": "PUT",
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "body": JSON.stringify({
+                "postId": postId,
+                "title": newTitle,
+                "content": newContent
+            })
+        })
+        const response = await result.json()
+        if(response.success == true) {
+            alert("수정 완료")
+            window.location.reload()
+        }
+        else {
+            alert("수정 실패")
+            console.log(response.message)
+        }
+    }
+</script>
+</html>
