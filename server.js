@@ -1,5 +1,6 @@
 const express = require("express")
 const session = require("express-session")
+const fileStore = require('session-file-store')(session)
 const app = express()
 const port = 3000
 app.use(express.json())
@@ -11,7 +12,8 @@ app.use(session({
     secret: "yjkey",
     resave: false,
     saveUninitialized: false,
-    cookie: {secure: false}
+    cookie: {secure: false},
+    store: new fileStore({logFn: function(){}})
 }))
 
 const pagesApi = require("./router/pages.js")

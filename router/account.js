@@ -2,6 +2,7 @@ const router = require("express").Router()
 const {Client} = require("pg")
 const dbConn = require("../info/dbConn.js")
 const logging = require("../module/logging.js")
+const fs = require("fs")
 
 router.post("/login", (req, res) => {      //로그인기능, 세션생성
     const idValue = req.body.id
@@ -44,6 +45,20 @@ router.post("/login", (req, res) => {      //로그인기능, 세션생성
             const row = data.rows
             if(row.length != 0) {
                 result.success = true
+                fs.readdir("./sessions", (err, file) => {
+                    for(let i=0; i<file.length; i++) {
+                        fs.readFile("sessions/" + file[i], "utf8", (err, data) => {
+                            const usersId = JSON.parse(data)
+                            if(usersId.userData.id == idValue) {
+                                fs.unlink("sessions/" + file[i], (err) => {
+                                    if(err) {
+                                        console.log(err)
+                                    }
+                                })
+                            }
+                        })
+                    }
+                })
                 if(req.session.userData){
                     req.session.userData = {
                         "id": idValue,

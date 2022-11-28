@@ -53,8 +53,8 @@
         const response2 = await result2.json()
         console.log(response2)
         if(response2.message != undefined) {
-            alert(response2.message)
-            location.href = "/mainPage"
+            console.log(response2.message)
+            location.href = "/loginPage"
         }
         else {
             postId = response2[0].postid

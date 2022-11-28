@@ -95,6 +95,13 @@ router.post("/", uploadFile.single("imageFile"), async (req, res) => {       //�
         "message": ""
     }
 
+    if(req.session.userData == undefined) {
+        result.message = "로그인 필요"
+        logging(req, "none", "/post", "get", "none", result)
+        res.send(result)
+        return
+    } 
+
     if(title.length > 100 || title.length == 0 || content.length > 100 || content.length == 0) {
         result.message = "내용의 길이가 적절하지 않습니다"
         logging(req, req.session.userData.id, "/post", "post", {"writer": userId, "title": title, "content": content}, result)
@@ -131,6 +138,13 @@ router.put("/", async (req, res) => {        //게시글 수정
     }
     const client = new Client(dbConn)
 
+    if(req.session.userData == undefined) {
+        result.message = "로그인 필요"
+        logging(req, "none", "/post", "get", "none", result)
+        res.send(result)
+        return
+    } 
+
     try {
         await client.connect()
         await client.query(sql, values)
@@ -155,6 +169,13 @@ router.delete("/", async (req, res) => {        //게시글 삭제
         "message": ""
     }
     const client = new Client(dbConn)
+
+    if(req.session.userData == undefined) {
+        result.message = "로그인 필요"
+        logging(req, "none", "/post", "get", "none", result)
+        res.send(result)
+        return
+    }
 
     try {
         await client.connect()
