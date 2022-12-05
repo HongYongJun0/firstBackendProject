@@ -2,18 +2,9 @@ const router = require("express").Router()
 const {Client} = require("pg")
 const dbConn = require("../info/dbConn.js")
 const logging = require("../module/logging.js")
-const fs = require("fs")
-// const { createClient } = require("redis")
-// const redisClient = createClient({
-//     legacyMode: true
-// })
 const redisClient = require("redis").createClient()
 
 router.post("/login", async (req, res) => {      //로그인기능, 세션생성
-
-    let now = new Date()
-    console.log(now.getHours())
-    console.log(now)
     const idValue = req.body.id
     const pwValue = req.body.pw
 
@@ -55,7 +46,9 @@ router.post("/login", async (req, res) => {      //로그인기능, 세션생성
             await redisClient.hSet(`userId:${idValue}`, "id", idValue)
             await redisClient.hSet(`userId:${idValue}`, "isManager", tf)
             await redisClient.hSet(`userId:${idValue}`, "sessId", req.sessionID)
+            await redisClient.expire(`userId:${idValue}`, 60 * 30)
             await redisClient.disconnect()
+
             res.send(result)
             return
         }

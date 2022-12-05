@@ -6,39 +6,55 @@ const logging = require("../module/logging.js")
 const uploadFile = require("../module/uploadFile.js")
 const deleteFile = require("../module/deleteFile.js")
 const bucketUrl = require("../info/s3BucketUrl.js")
+const redisClient = require("redis").createClient()
 
-router.get("/all", (req, res) => {        //게시글 목록 띄워주는 api
+router.get("/all", async (req, res) => {        //게시글 목록 띄워주는 api
+    const searchKeyword = url.parse(req.headers.referer, true).query.searchId
+    const usingKeywordSql = "SELECT * FROM backend.post WHERE userId=$1"
+    const value = [searchKeyword]
     const postSql = "SELECT * FROM backend.post"
 
     const result = {
-        "message": "로그인 필요"
+        "success": false,
+        "message": "",
+        "data": null,
+        "searchLog": null
     }
 
     const client = new Client(dbConn)
     if(req.session.userData == undefined) {
+        result.message = "로그인 필요"
         logging(req, "none", "/post/all", "get", "none", result)
         res.send(result)
         return
     }
 
-    client.connect((err) => {
-        if(err) {
-            console.log(err.message)
-            return
-        }
-    })
-
-    client.query(postSql, (err, data) => {
-        if(err) {
-            console.log(err.message)
-            return
+    try {
+        await client.connect()
+        let data
+        if(searchKeyword != "" && searchKeyword != undefined) {
+            // await redisClient.connect()
+            // const count = await redisClient.zCard("test")
+            // console.log(count)
+            // await redisClient.zAdd("test", 0, "dhsjd")
+            // await redisClient.zAdd(`${req.session.userData.id}의 검색기록`, await redisClient.zCard(`${req.session.userData.id}의 검색기록`), searchKeyword)
+            // result.searchLog = await redisClient.zRange("test", 0, 4)
+            // console.log(result.searchLog)
+            // await redisClient.disconnect()
+            data = await client.query(usingKeywordSql, value)
         }
         else {
-            logging(req, req.session.userData.id, "/post/all", "get", "none", data.rows)
-            res.send(data.rows)
-            return
+            data = await client.query(postSql)
         }
-    })
+        result.data = data.rows
+        result.success = true
+        logging(req, req.session.userData.id, "/post/all", "get", "none", result)
+        res.send(result)
+    } catch(err) {
+        result.message = err.message
+        res.send(result)
+    }
+
 })
 
 router.get("/", async (req, res) => {         //특정 게시글 하나 불러오기

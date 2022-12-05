@@ -9,8 +9,18 @@
 <body>
     <h1 id="mainText"></h1>
 
-    <div>접속한 회원 수</div>
+    <div>오늘 접속한 회원 수</div>
     <div id="accessorCount"></div>
+    <div>접속한 총 회원 수</div>
+    <div id="accessorFullCount"></div>
+
+    <div>
+        작성자 아이디로 게시글 검색
+        <input type="text" id="searchById">
+        <input type="button" value="검색" onclick="searchByIdEvent()">
+    </div>
+    <div id="searchLog">
+    </div>
 
     <table border="1" id="allPost">
         <th>유저아이디</th>
@@ -57,6 +67,15 @@
             accessorCount.innerHTML = countResponse.data
         }
 
+        const fullCountResult = await fetch("/accessCount/all")
+        const fullCountResponse = await fullCountResult.json()
+        if(fullCountResponse.success == false) {
+            alert(fullCountResponse.message)
+        }
+        else {
+            accessorFullCount.innerHTML = fullCountResponse.data
+        }
+
         const result = await fetch("/session")
         const response = await result.json()
         if(response.id == undefined) {
@@ -69,14 +88,14 @@
         const post = await fetch("/post/all")
         const response2 = await post.json()
 
-        if(response2.message != undefined) {
+        if(response2.success == false) {
             console.log(response2.message)
         }
-        for(let i=0; i<response2.length; i++) {
+        for(let i=0; i<response2.data.length; i++) {
             let newTr = document.createElement("tr")
-            newTr.setAttribute("id", response2[i].postid)
+            newTr.setAttribute("id", response2.data[i].postid)
             newTr.onclick = () => {
-                location.href = "/viewPostPage?id=" + `${response2[i].postid}`
+                location.href = "/viewPostPage?id=" + `${response2.data[i].postid}`
             }
 
             let newTd1 = document.createElement("td")
@@ -84,10 +103,10 @@
             let newTd3 = document.createElement("td")
             let newTd4 = document.createElement("td")
             
-            newTd1.innerHTML = response2[i].userid
-            newTd2.innerHTML = response2[i].title
-            newTd3.innerHTML = response2[i].contents
-            newTd4.innerHTML = response2[i].date
+            newTd1.innerHTML = response2.data[i].userid
+            newTd2.innerHTML = response2.data[i].title
+            newTd3.innerHTML = response2.data[i].contents
+            newTd4.innerHTML = response2.data[i].date
             newTr.appendChild(newTd1)
             newTr.appendChild(newTd2)
             newTr.appendChild(newTd3)
@@ -95,6 +114,11 @@
             allPost.appendChild(newTr)
         }
 
+    }
+
+    const searchByIdEvent = () => {
+        const keyWord = document.getElementById("searchById").value
+        location.href = "/mainPage?searchId=" + `${keyWord}`
     }
 
     const writePostEvent = async () => {
