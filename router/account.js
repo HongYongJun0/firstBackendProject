@@ -3,8 +3,17 @@ const {Client} = require("pg")
 const dbConn = require("../info/dbConn.js")
 const logging = require("../module/logging.js")
 const fs = require("fs")
+// const { createClient } = require("redis")
+// const redisClient = createClient({
+//     legacyMode: true
+// })
+const redisClient = require("redis").createClient()
 
-router.post("/login", (req, res) => {      //로그인기능, 세션생성
+router.post("/login", async (req, res) => {      //로그인기능, 세션생성
+
+    let now = new Date()
+    console.log(now.getHours())
+    console.log(now)
     const idValue = req.body.id
     const pwValue = req.body.pw
 
@@ -13,75 +22,54 @@ router.post("/login", (req, res) => {      //로그인기능, 세션생성
         "message": ""
     }
 
-    const client = new Client(dbConn)
-
-    client.connect((err) => {
-        if(err) {
-            console.log(err.message)
-            result.message = err.message
-            logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
-            res.send(result)
-            return;
-        }
-    })
-
+    if(idValue.length == 0 || idValue.length > 30 || pwValue.length == 0 || pwValue.length > 30) {
+        result.message = "아이디 또는 비밀번호의 길이 부적합"
+        logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
+        res.send(result)
+        return
+    }
     const loginSql = "SELECT * FROM backend.account WHERE userId=$1 AND userPassword=$2"
     const values = [idValue, pwValue]
 
-    client.query(loginSql, values, (err, data) => {
-        if(err) {
-            console.log(err.message)
-            result.message = err.message
+    const client = new Client(dbConn)
+
+    try{
+        await client.connect()
+        const data = await client.query(loginSql, values)
+        const row = data.rows
+        if(row.length != 0) {
+            result.success = true
+            req.session.userData = {
+                "id": idValue,
+                "isManager": data.rows[0].ismanager
+            }
+            logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
+            let tf
+            if(data.rows[0].ismanager == true) {
+                tf = 1
+            } else {
+                tf = 0
+            }
+            await redisClient.connect()
+            await redisClient.sAdd("accessorCount", idValue)
+            await redisClient.hSet(`userId:${idValue}`, "id", idValue)
+            await redisClient.hSet(`userId:${idValue}`, "isManager", tf)
+            await redisClient.hSet(`userId:${idValue}`, "sessId", req.sessionID)
+            await redisClient.disconnect()
+            res.send(result)
+            return
+        }
+        else {
             logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
             res.send(result)
             return
         }
-        else if(idValue.length == 0 || idValue.length > 30 || pwValue.length == 0 || pwValue.length > 30) {
-            result.message = "아이디 또는 비밀번호의 길이 부적합"
-            logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
-            res.send(result)
-        }
-        else {
-            const row = data.rows
-            if(row.length != 0) {
-                result.success = true
-                fs.readdir("./sessions", (err, file) => {
-                    for(let i=0; i<file.length; i++) {
-                        fs.readFile("sessions/" + file[i], "utf8", (err, data) => {
-                            const usersId = JSON.parse(data)
-                            if(usersId.userData.id == idValue) {
-                                fs.unlink("sessions/" + file[i], (err) => {
-                                    if(err) {
-                                        console.log(err)
-                                    }
-                                })
-                            }
-                        })
-                    }
-                })
-                if(req.session.userData){
-                    req.session.userData = {
-                        "id": idValue,
-                        "isManager": data.rows[0].ismanager
-                    }
-                }
-                else {
-                    req.session.userData = {
-                        "id": idValue,
-                        "isManager": data.rows[0].ismanager
-                    }
-                }
-                logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
-                res.send(result)
-                return
-            }
-            else {
-                logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
-                res.send(result)
-                return
-            }
-        }
-    })
+    } catch(err) {
+        console.log(err.message)
+        result.message = err.message
+        logging(req, "none", "/account/login", "post", {"id": idValue, "pw": pwValue}, result)
+        res.send(result)
+    }
 })
 
 router.post("/checkId", (req, res) => {     //아이디 중복 확인

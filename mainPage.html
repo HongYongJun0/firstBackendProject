@@ -9,6 +9,9 @@
 <body>
     <h1 id="mainText"></h1>
 
+    <div>접속한 회원 수</div>
+    <div id="accessorCount"></div>
+
     <table border="1" id="allPost">
         <th>유저아이디</th>
         <th>제목</th>
@@ -43,6 +46,17 @@
     window.onload = async () => {
         let mainText = document.getElementById("mainText")
         let allPost = document.getElementById("allPost")
+        let accessorCount = document.getElementById("accessorCount")
+
+        const countResult = await fetch("/accessCount")
+        const countResponse = await countResult.json()
+        if(countResponse.success == false) {
+            alert(countResponse.message)
+        }
+        else {
+            accessorCount.innerHTML = countResponse.data
+        }
+
         const result = await fetch("/session")
         const response = await result.json()
         if(response.id == undefined) {

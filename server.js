@@ -1,20 +1,38 @@
 const express = require("express")
 const session = require("express-session")
-const fileStore = require('session-file-store')(session)
+// const {createClient} = require("redis")
+// const redisStore = require('connect-redis')(session)
+// const redisClient = createClient({
+//     legacyMode: true
+// })
+// redisClient.connect()
 const app = express()
 const port = 3000
 app.use(express.json())
 require("dotenv").config()
 
-const {Client} = require("pg")
-
 app.use(session({
-    secret: "yjkey",
+    secret: process.env.sessionSecretKey,
     resave: false,
     saveUninitialized: false,
     cookie: {secure: false},
-    store: new fileStore({logFn: function(){}})
+    // store: new redisStore({client: redisClient})
 }))
+
+// app.use(session(
+//     {
+//         secret: 'yjkey',
+//         store: new redisStore({
+//             host: "127.0.0.1",
+//             port: 6379,
+//             client: redisClient,
+//             prefix : "session:",
+//             db : 0
+//         }),
+//         saveUninitialized: false,
+//         resave: true
+//     }
+// ))
 
 const pagesApi = require("./router/pages.js")
 app.use("/", pagesApi)
@@ -30,6 +48,9 @@ app.use("/session", sessionApi)
 
 const logApi = require("./router/sendLog.js")
 app.use("/sendLog", logApi)
+
+const accessCountApi = require("./router/accessCount.js")
+app.use("/accessCount", accessCountApi)
 
 //api생성
 
