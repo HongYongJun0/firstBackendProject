@@ -33,14 +33,11 @@ router.get("/all", async (req, res) => {        //게시글 목록 띄워주는 
         await client.connect()
         let data
         if(searchKeyword != "" && searchKeyword != undefined) {
-            // await redisClient.connect()
-            // const count = await redisClient.zCard("test")
-            // console.log(count)
-            // await redisClient.zAdd("test", 0, "dhsjd")
-            // await redisClient.zAdd(`${req.session.userData.id}의 검색기록`, await redisClient.zCard(`${req.session.userData.id}의 검색기록`), searchKeyword)
-            // result.searchLog = await redisClient.zRange("test", 0, 4)
-            // console.log(result.searchLog)
-            // await redisClient.disconnect()
+            await redisClient.connect()
+            await redisClient.zAdd(`${req.session.userData.id}SearchLog`, [{score: (await redisClient.zCard(`${req.session.userData.id}SearchLog`) * -1), value: searchKeyword}])
+            await redisClient.expire(`${req.session.userData.id}SearchLog`, 60 * 30)
+            result.searchLog = await redisClient.zRange(`${req.session.userData.id}SearchLog`, 0, 4)
+            await redisClient.disconnect()
             data = await client.query(usingKeywordSql, value)
         }
         else {

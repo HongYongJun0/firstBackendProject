@@ -57,6 +57,7 @@
         let mainText = document.getElementById("mainText")
         let allPost = document.getElementById("allPost")
         let accessorCount = document.getElementById("accessorCount")
+        const searchLog = document.getElementById("searchLog")
 
         const countResult = await fetch("/accessCount")
         const countResponse = await countResult.json()
@@ -85,11 +86,15 @@
         userId = response.id
         isManager = response.isManager
         mainText.innerText = `${response.id}님, 환영합니다.`
+
         const post = await fetch("/post/all")
         const response2 = await post.json()
 
         if(response2.success == false) {
             console.log(response2.message)
+        }
+        else if(response2.searchLog) {
+            searchLog.innerHTML = `검색기록: ${response2.searchLog}`
         }
         for(let i=0; i<response2.data.length; i++) {
             let newTr = document.createElement("tr")
