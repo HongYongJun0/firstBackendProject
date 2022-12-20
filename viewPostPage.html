@@ -29,6 +29,7 @@
     <div>
         <input type="button" value="메인 페이지로 돌아가기" onclick="mainPageEvent()">
     </div>
+
 </body>
 
 <script>
@@ -51,7 +52,6 @@
 
         const result2 = await fetch("/post")
         const response2 = await result2.json()
-        console.log(response2)
         if(response2.message != undefined) {
             console.log(response2.message)
             location.href = "/loginPage"
@@ -71,9 +71,6 @@
                 document.getElementById("fileImage").style.display = "none"
             }
         }
-
-        console.log(response2.length)
-        console.log(response2[0].filename.length)
 
     }
 

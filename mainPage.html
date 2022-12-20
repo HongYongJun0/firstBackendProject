@@ -21,6 +21,16 @@
     </div>
     <div id="searchLog">
     </div>
+    <div>
+        통합검색(es사용)
+        <input type="text" id="searchAll">
+        <select id="dateRange">
+            <option value="0">오늘</option>
+            <option value="1">하루전</option>
+            <option value="3">3일전</option>
+        </select>
+        <input type="button" value="검색" onclick="searchAllEvent()">
+    </div>
 
     <table border="1" id="allPost">
         <th>유저아이디</th>
@@ -124,6 +134,61 @@
     const searchByIdEvent = () => {
         const keyWord = document.getElementById("searchById").value
         location.href = "/mainPage?searchId=" + `${keyWord}`
+    }
+
+    const searchAllEvent = async () => {
+        let allPost = document.getElementById("allPost")
+        const keyWord = document.getElementById("searchAll").value
+        const dateRange = document.getElementById("dateRange").value
+        const post = await fetch(`/post/all?keyWord=${keyWord}&dateRange=${dateRange}`)
+        const response2 = await post.json()
+        if(response2.success == false) {
+            console.log(response2.message)
+        }
+        else {
+            let length = 0
+            for(let i=0; i<response2.searchAllData.length; i++) {
+                if(response2.searchAllData[i]._score != 0) {
+                    length++
+                }
+            }
+            allPost.innerHTML = ""
+            let newUserIdTh = document.createElement("th")
+            newUserIdTh.innerHTML = "유저아이디"
+            allPost.appendChild(newUserIdTh)
+            let newTitleTh = document.createElement("th")
+            newTitleTh.innerHTML = "제목"
+            allPost.appendChild(newTitleTh)
+            let newContentsTh = document.createElement("th")
+            newContentsTh.innerHTML = "내용"
+            allPost.appendChild(newContentsTh)
+            let newDateTh = document.createElement("th")
+            newDateTh.innerHTML = "날짜"
+            allPost.appendChild(newDateTh)
+            for(let i=0; i<length; i++) {
+                let newTr = document.createElement("tr")
+                newTr.setAttribute("id", response2.searchAllData[i]._id)
+                newTr.onclick = () => {
+                    location.href = "/viewPostPage?id=" + `${response2.searchAllData[i]._id}`
+                }
+
+                let newTd1 = document.createElement("td")
+                let newTd2 = document.createElement("td")
+                let newTd3 = document.createElement("td")
+                let newTd4 = document.createElement("td")
+                
+                newTd1.innerHTML = response2.searchAllData[i]._source.userId
+                newTd2.innerHTML = response2.searchAllData[i]._source.title
+                newTd3.innerHTML = response2.searchAllData[i]._source.contents
+                newTd4.innerHTML = response2.searchAllData[i]._source.date
+                newTr.appendChild(newTd1)
+                newTr.appendChild(newTd2)
+                newTr.appendChild(newTd3)
+                newTr.appendChild(newTd4)
+                allPost.appendChild(newTr)
+            }
+        }
+        console.log(response2.searchAllData)
     }
 
     const writePostEvent = async () => {
